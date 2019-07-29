@@ -1,15 +1,24 @@
-var defferedPrompt;
-// check for serviveWorker is supported by browser or not
+
+var deferredPrompt;
+
+if (!window.Promise) {
+  window.Promise = Promise;
+}
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('/sw.js')
-    .then(() => console.log('Service worker registred!!'))
-    .catch(err => console.log(err));
+    .then(function () {
+      console.log('Service worker registered!');
+    })
+    .catch(function(err) {
+      console.log(err);
+    });
 }
 
-window.addEventListener('beforeinstallprompt', e => {
-  console.log('beforeinstallprompt fired...');
-  e.preventDefault();
-  defferedPrompt = e;
+window.addEventListener('beforeinstallprompt', function(event) {
+  console.log('beforeinstallprompt fired');
+  event.preventDefault();
+  deferredPrompt = event;
   return false;
 });
