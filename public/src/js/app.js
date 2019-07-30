@@ -1,5 +1,5 @@
 
-var deferredPrompt;
+var deferredPrompt = null;
 
 if (!window.Promise) {
   window.Promise = Promise;

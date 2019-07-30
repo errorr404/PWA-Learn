@@ -1,34 +1,68 @@
 var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
-var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
+var closeCreatePostModalButton = document.querySelector(
+  '#close-create-post-modal-btn'
+);
 var sharedMomentsArea = document.querySelector('#shared-moments');
 
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
+  // if (deferredPrompt) {
+  //   deferredPrompt.prompt();
 
-    deferredPrompt.userChoice.then(function(choiceResult) {
-      console.log(choiceResult.outcome);
+  //   deferredPrompt.userChoice.then(function(choiceResult) {
+  //     console.log(choiceResult.outcome);
 
-      if (choiceResult.outcome === 'dismissed') {
-        console.log('User cancelled installation');
-      } else {
-        console.log('User added to home screen');
-      }
-    });
+  //     if (choiceResult.outcome === 'dismissed') {
+  //       console.log('User cancelled installation');
+  //     } else {
+  //       console.log('User added to home screen');
+  //     }
+  //   });
 
-    deferredPrompt = null;
-  }
+  //   deferredPrompt = null;
+  // }
+  // for unregistring the sw
+  // if ('serviceWorker' in navigator) {
+  //   navigator.serviceWorker.getRegistration().then(registrations => {
+  //     // this one is for if we have more then one service worker
+  //     // for (let registration of registrations) {
+  //     //   console.log('unregister is called...');
+  //     //   registration.unregister();
+  //     // }
+
+  //     // if we have only one service worker
+  //     registrations.unregister();
+  //   });
+  // }
 }
 
 function closeCreatePostModal() {
   createPostArea.style.display = 'none';
 }
 
+function clearCards() {
+  while (sharedMomentsArea.hasChildNodes()) {
+    sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
+  }
+}
+
 shareImageButton.addEventListener('click', openCreatePostModal);
 
 closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
+
+// function onSaveButtonClicked(event){
+//   console.log('button is clicked...');
+//   if('caches' in window){
+//     caches.open('user-requested')
+//         .then(cache => {
+//           cache.addAll([
+//             'https://httpbin.org/get',
+//           '/src/images/sf-boat.jpg'])
+//         })
+//   }
+
+// }
 
 function createCard() {
   var cardWrapper = document.createElement('div');
@@ -42,21 +76,45 @@ function createCard() {
   var cardTitleTextElement = document.createElement('h2');
   cardTitleTextElement.className = 'mdl-card__title-text';
   cardTitleTextElement.textContent = 'San Francisco Trip';
-  cardTitleTextElement.style.color='red';
+  cardTitleTextElement.style.color = 'red';
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement('div');
   cardSupportingText.className = 'mdl-card__supporting-text';
   cardSupportingText.textContent = 'In San Francisco';
   cardSupportingText.style.textAlign = 'center';
+  // var cardSaveButton = document.createElement('button');
+  // cardSaveButton.textContent = 'save';
+  // cardSaveButton.addEventListener('click',onSaveButtonClicked);
+  // cardSupportingText.appendChild(cardSaveButton);
   cardWrapper.appendChild(cardSupportingText);
   componentHandler.upgradeElement(cardWrapper);
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-fetch('https://httpbin.org/get')
+var url = 'https://httpbin.org/get';
+var networkDataReceived = false;
+
+fetch(url)
   .then(function(res) {
     return res.json();
   })
   .then(function(data) {
+    console.log('data from web', data);
+    clearCards();
     createCard();
   });
+
+if ('caches' in window) {
+  caches
+    .match(url)
+    .then(response => {
+      if (response) return response.json();
+    })
+    .then(data => {
+      console.log('data form cache', data);
+      if (!networkDataReceived) {
+        clearCards();
+        createCard();
+      }
+    });
+}
