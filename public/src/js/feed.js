@@ -23,18 +23,18 @@ function openCreatePostModal() {
   //   deferredPrompt = null;
   // }
   // for unregistring the sw
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistration().then(registrations => {
-      // this one is for if we have more then one service worker
-      // for (let registration of registrations) {
-      //   console.log('unregister is called...');
-      //   registration.unregister();
-      // }
+  // if ('serviceWorker' in navigator) {
+  //   navigator.serviceWorker.getRegistration().then(registrations => {
+  //     // this one is for if we have more then one service worker
+  //     // for (let registration of registrations) {
+  //     //   console.log('unregister is called...');
+  //     //   registration.unregister();
+  //     // }
 
-      // if we have only one service worker
-      registrations.unregister();
-    });
-  }
+  //     // if we have only one service worker
+  //     registrations.unregister();
+  //   });
+  // }
 }
 
 function closeCreatePostModal() {
