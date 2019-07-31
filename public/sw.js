@@ -1,7 +1,7 @@
 importScripts('/src/js/idb.js'); // this is the way to import scripts in the service worker file.
 importScripts('/src/js/utility.js');
-var CACHE_STATIC_NAME = 'static-v8';
-var CACHE_DYNAMIC_NAME = 'dynamic-v8';
+var CACHE_STATIC_NAME = 'static-v9';
+var CACHE_DYNAMIC_NAME = 'dynamic-v9';
 var STATIC_FILES = [
   '/',
   '/index.html',
@@ -33,7 +33,7 @@ self.addEventListener('install', function(event) {
 self.addEventListener('activate', function(event) {
   console.log('[Service Worker] Activating Service Worker ....', event);
   event.waitUntil(
-    caches.keys().then(function(keyList) { 
+    caches.keys().then(function(keyList) {
       return Promise.all(
         keyList.map(function(key) {
           if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
@@ -76,11 +76,15 @@ self.addEventListener('fetch', function(event) {
     event.respondWith(
       fetch(event.request).then(function(res) {
         var clonedRes = res.clone();
-        clonedRes.json().then(function(data) {
-          for (var key in data) {
-            writeData('posts',data[key]);
-          }
-        });
+        clearStorage('posts')
+          .then(() => {
+            return clonedRes.json();
+          })
+          .then(function(data) {
+            for (var key in data) {
+              writeData('posts', data[key]);
+            }
+          });
         return res;
       })
     );
