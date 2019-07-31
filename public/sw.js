@@ -1,11 +1,14 @@
-var CACHE_STATIC_NAME = 'static-v9';
-var CACHE_DYNAMIC_NAME = 'dynamic-v2';
+importScripts('/src/js/idb.js'); // this is the way to import scripts in the service worker file.
+
+var CACHE_STATIC_NAME = 'static-v4';
+var CACHE_DYNAMIC_NAME = 'dynamic-v4';
 var STATIC_FILES = [
   '/',
   '/index.html',
   '/offline.html',
   '/src/js/app.js',
   '/src/js/feed.js',
+  '/src/js/idb.js',
   '/src/js/promise.js',
   '/src/js/fetch.js',
   '/src/js/material.min.js',
@@ -16,6 +19,12 @@ var STATIC_FILES = [
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
 ];
+
+var dbPromise = idb.open('posts-store', 1, db => {
+  if (!db.objectStoreNames.contains('posts')) {
+    db.createObjectStore('posts', { keyPath: 'id' });
+  }
+});
 
 self.addEventListener('install', function(event) {
   console.log('[Service Worker] Installing Service Worker ...', event);
@@ -70,14 +79,20 @@ function trimCache(cacheName, maxItems) {
 self.addEventListener('fetch', function(event) {
   var url = 'https://pwagram-d7044.firebaseio.com/posts';
   if (event.request.url.indexOf(url) > -1) {
-    console.log('in card fetch');
     event.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
-        return fetch(event.request).then(function(res) {
-          // trimCache(CACHE_DYNAMIC_NAME, 5);
-          cache.put(event.request, res.clone());
-          return res;
+      fetch(event.request).then(function(res) {
+        var clonedRes = res.clone();
+        clonedRes.json().then(function(data) {
+          for (var key in data) {
+            dbPromise.then(function(db) {
+              var tx = db.transaction('posts', 'readwrite');
+              var store = tx.objectStore('posts');
+              store.put(data[key]);
+              return tx.complete;
+            });
+          }
         });
+        return res;
       })
     );
   } else if (isInArray(event.request.url, STATIC_FILES)) {
