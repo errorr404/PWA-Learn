@@ -21,6 +21,7 @@ function readAllData(st) {
   });
 }
 
+// delete whole storage
 function clearStorage(st) {
   return dbPromise.then(db => {
     var tx = db.transaction(st, 'readwrite');
@@ -28,4 +29,18 @@ function clearStorage(st) {
     store.clear();
     return tx.complete;
   });
+}
+
+// delete a single item
+function deleteItemFromData(st, id) {
+  return dbPromise
+    .then(db => {
+      var tx = db.transaction(st, 'readwrite');
+      var store = tx.objectStore(st);
+      store.delete(id);
+      return tx.complete;
+    })
+    .then(() => {
+      console.log('item deleted');
+    });
 }
