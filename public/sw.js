@@ -1,7 +1,7 @@
 importScripts('/src/js/idb.js'); // this is the way to import scripts in the service worker file.
-
-var CACHE_STATIC_NAME = 'static-v4';
-var CACHE_DYNAMIC_NAME = 'dynamic-v4';
+importScripts('/src/js/utility.js');
+var CACHE_STATIC_NAME = 'static-v8';
+var CACHE_DYNAMIC_NAME = 'dynamic-v8';
 var STATIC_FILES = [
   '/',
   '/index.html',
@@ -20,12 +20,6 @@ var STATIC_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
 ];
 
-var dbPromise = idb.open('posts-store', 1, db => {
-  if (!db.objectStoreNames.contains('posts')) {
-    db.createObjectStore('posts', { keyPath: 'id' });
-  }
-});
-
 self.addEventListener('install', function(event) {
   console.log('[Service Worker] Installing Service Worker ...', event);
   event.waitUntil(
@@ -39,7 +33,7 @@ self.addEventListener('install', function(event) {
 self.addEventListener('activate', function(event) {
   console.log('[Service Worker] Activating Service Worker ....', event);
   event.waitUntil(
-    caches.keys().then(function(keyList) {
+    caches.keys().then(function(keyList) { 
       return Promise.all(
         keyList.map(function(key) {
           if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
@@ -84,12 +78,7 @@ self.addEventListener('fetch', function(event) {
         var clonedRes = res.clone();
         clonedRes.json().then(function(data) {
           for (var key in data) {
-            dbPromise.then(function(db) {
-              var tx = db.transaction('posts', 'readwrite');
-              var store = tx.objectStore('posts');
-              store.put(data[key]);
-              return tx.complete;
-            });
+            writeData('posts',data[key]);
           }
         });
         return res;

@@ -69,7 +69,7 @@ function createCard(data) {
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
   var cardTitle = document.createElement('div');
   cardTitle.className = 'mdl-card__title';
-  cardTitle.style.backgroundImage = 'url('+ data.image + ')';
+  cardTitle.style.backgroundImage = 'url(' + data.image + ')';
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '180px';
   cardWrapper.appendChild(cardTitle);
@@ -93,7 +93,7 @@ function createCard(data) {
 
 function UpdateCard(data) {
   clearCards();
-  for (var i = 0;i< data.length;i++){
+  for (var i = 0; i < data.length; i++) {
     createCard(data[i]);
   }
 }
@@ -107,26 +107,17 @@ fetch(url)
   .then(function(data) {
     console.log('data from web', data);
     var dataArr = [];
-    for( var key in data) {
+    for (var key in data) {
       dataArr.push(data[key]);
     }
     UpdateCard(dataArr);
   });
 
-if ('caches' in window) {
-  caches
-    .match(url)
-    .then(response => { 
-      if (response) return response.json();
-    })
-    .then(data => {
-      console.log('data form cache', data);
-      if (!networkDataReceived) {
-    var dataArr = [];
-        for( var key in data) {
-          dataArr.push(data[key]);
-        }
-        UpdateCard(dataArr);
-      }
-    });
+if ('indexedDB' in window) {
+  readAllData('posts').then(data => {
+    if (!networkDataReceived) {
+      console.log('from indexDB', data);
+      UpdateCard(data);
+    }
+  });
 }
