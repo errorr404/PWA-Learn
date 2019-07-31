@@ -1,11 +1,14 @@
-var CACHE_STATIC_NAME = 'static-v6';
-var CACHE_DYNAMIC_NAME = 'dynamic-v2';
+importScripts('/src/js/idb.js'); // this is the way to import scripts in the service worker file.
+importScripts('/src/js/utility.js');
+var CACHE_STATIC_NAME = 'static-v9';
+var CACHE_DYNAMIC_NAME = 'dynamic-v9';
 var STATIC_FILES = [
   '/',
   '/index.html',
   '/offline.html',
   '/src/js/app.js',
   '/src/js/feed.js',
+  '/src/js/idb.js',
   '/src/js/promise.js',
   '/src/js/fetch.js',
   '/src/js/material.min.js',
@@ -68,15 +71,21 @@ function trimCache(cacheName, maxItems) {
 }
 
 self.addEventListener('fetch', function(event) {
-  var url = 'https://httpbin.org/get';
+  var url = 'https://pwagram-d7044.firebaseio.com/posts';
   if (event.request.url.indexOf(url) > -1) {
     event.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
-        return fetch(event.request).then(function(res) {
-          // trimCache(CACHE_DYNAMIC_NAME, 5);
-          cache.put(event.request, res.clone());
-          return res;
-        });
+      fetch(event.request).then(function(res) {
+        var clonedRes = res.clone();
+        clearStorage('posts')
+          .then(() => {
+            return clonedRes.json();
+          })
+          .then(function(data) {
+            for (var key in data) {
+              writeData('posts', data[key]);
+            }
+          });
+        return res;
       })
     );
   } else if (isInArray(event.request.url, STATIC_FILES)) {

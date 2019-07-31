@@ -64,23 +64,23 @@ closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
 
 // }
 
-function createCard() {
+function createCard(data) {
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
   var cardTitle = document.createElement('div');
   cardTitle.className = 'mdl-card__title';
-  cardTitle.style.backgroundImage = 'url("/src/images/sf-boat.jpg")';
+  cardTitle.style.backgroundImage = 'url(' + data.image + ')';
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '180px';
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement('h2');
   cardTitleTextElement.className = 'mdl-card__title-text';
-  cardTitleTextElement.textContent = 'San Francisco Trip';
+  cardTitleTextElement.textContent = data.title;
   cardTitleTextElement.style.color = 'red';
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement('div');
   cardSupportingText.className = 'mdl-card__supporting-text';
-  cardSupportingText.textContent = 'In San Francisco';
+  cardSupportingText.textContent = data.location;
   cardSupportingText.style.textAlign = 'center';
   // var cardSaveButton = document.createElement('button');
   // cardSaveButton.textContent = 'save';
@@ -91,7 +91,13 @@ function createCard() {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-var url = 'https://httpbin.org/get';
+function UpdateCard(data) {
+  clearCards();
+  for (var i = 0; i < data.length; i++) {
+    createCard(data[i]);
+  }
+}
+var url = 'https://pwagram-d7044.firebaseio.com/posts.json';
 var networkDataReceived = false;
 
 fetch(url)
@@ -100,21 +106,18 @@ fetch(url)
   })
   .then(function(data) {
     console.log('data from web', data);
-    clearCards();
-    createCard();
+    var dataArr = [];
+    for (var key in data) {
+      dataArr.push(data[key]);
+    }
+    UpdateCard(dataArr);
   });
 
-if ('caches' in window) {
-  caches
-    .match(url)
-    .then(response => {
-      if (response) return response.json();
-    })
-    .then(data => {
-      console.log('data form cache', data);
-      if (!networkDataReceived) {
-        clearCards();
-        createCard();
-      }
-    });
+if ('indexedDB' in window) {
+  readAllData('posts').then(data => {
+    if (!networkDataReceived) {
+      console.log('from indexDB', data);
+      UpdateCard(data);
+    }
+  });
 }
