@@ -1,4 +1,4 @@
-var CACHE_STATIC_NAME = 'static-v6';
+var CACHE_STATIC_NAME = 'static-v9';
 var CACHE_DYNAMIC_NAME = 'dynamic-v2';
 var STATIC_FILES = [
   '/',
@@ -68,8 +68,9 @@ function trimCache(cacheName, maxItems) {
 }
 
 self.addEventListener('fetch', function(event) {
-  var url = 'https://httpbin.org/get';
+  var url = 'https://pwagram-d7044.firebaseio.com/posts';
   if (event.request.url.indexOf(url) > -1) {
+    console.log('in card fetch');
     event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME).then(function(cache) {
         return fetch(event.request).then(function(res) {
